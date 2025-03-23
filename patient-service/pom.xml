@@ -103,6 +103,11 @@
 			<artifactId>protobuf-java</artifactId>
 			<version>4.29.1</version>
 		</dependency>
+		<!-- Kafka -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
