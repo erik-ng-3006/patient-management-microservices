@@ -8,6 +8,7 @@ import com.pm.patient_service.dto.PatientRequestDTO;
 import com.pm.patient_service.exception.EmailAlreadyExistException;
 import com.pm.patient_service.exception.PatientNotFoundException;
 import com.pm.patient_service.grpc.BillingServiceGrpcClient;
+import com.pm.patient_service.kafka.KafkaProducer;
 import com.pm.patient_service.model.Patient;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +20,12 @@ import com.pm.patient_service.repository.PatientRepository;
 public class PatientService {
   private final PatientRepository patientRepository;
   private final BillingServiceGrpcClient billingServiceGrpcClient;
+  private final KafkaProducer kafkaProducer;
 
-  public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
+  public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient, KafkaProducer kafkaProducer) {
     this.patientRepository = patientRepository;
     this.billingServiceGrpcClient = billingServiceGrpcClient;
+    this.kafkaProducer = kafkaProducer;
   }
 
   public List<PatientResponseDTO> getPatients() {
@@ -40,6 +43,9 @@ public class PatientService {
 
     // Call billing service to create billing account
     billingServiceGrpcClient.createBillingAccount(patient.getId().toString(), patient.getEmail(), patient.getName());
+
+    // Send patient created event when patient is created
+    kafkaProducer.sendEvent(patient);
 
     // Convert patient to dto and return
     return PatientMapper.toDTO(patient);
